@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phiếu tương tác — Sắp xếp câu kể</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF6EC;
+    --paper-line:#E4DCC5;
+    --ink:#2E2A22;
+    --ink-soft:#6B6353;
+    --gt:#3E6FBF;      /* giới thiệu — xanh */
+    --gt-bg:#E9F0FC;
+    --dd:#BE5B36;      /* đặc điểm — cam đất */
+    --dd-bg:#FBEAE1;
+    --hd:#417A55;      /* hoạt động — xanh lá */
+    --hd-bg:#E6F1E9;
+    --amber:#C79A2E;
+    --card-shadow: 2px 3px 0 rgba(46,42,34,0.12);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        var(--paper) 0px,
+        var(--paper) 35px,
+        var(--paper-line) 36px
+      );
+    font-family:'Be Vietnam Pro', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    padding:0 0 60px 0;
+  }
+
+  .wrap{max-width:760px;margin:0 auto;padding:28px 20px 0;}
+
+  /* ---- Header ---- */
+  header{margin-bottom:22px;}
+  .eyebrow-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .eyebrow-row .dot{width:8px;height:8px;border-radius:50%;background:var(--dd);}
+  h1{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:clamp(24px,5vw,32px);
+    line-height:1.15;
+    margin:0 0 10px 0;
+  }
+  p.lede{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:15px;
+    line-height:1.55;
+    max-width:56ch;
+  }
+
+  /* ---- Legend ---- */
+  .legend{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin:20px 0 26px;
+  }
+  .legend-item{
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:12.5px;
+    line-height:1.4;
+  }
+  .legend-item b{
+    display:block;
+    font-family:'Baloo 2',sans-serif;
+    font-size:14px;
+    margin-bottom:2px;
+  }
+  .legend-item.gt{background:var(--gt-bg);color:#2A4E8C;}
+  .legend-item.dd{background:var(--dd-bg);color:#8C4023;}
+  .legend-item.hd{background:var(--hd-bg);color:#2E5C3E;}
+
+  /* ---- Tabs ---- */
+  .tabs{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding-bottom:4px;
+    margin-bottom:24px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .tab{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    padding:9px 14px;
+    border-radius:999px;
+    border:2px solid var(--ink);
+    background:var(--paper);
+    font-family:'Baloo 2',sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    cursor:pointer;
+    color:var(--ink);
+    transition:transform .12s ease;
+    position:relative;
+  }
+  .tab .emoji{font-size:17px;}
+  .tab.active{background:var(--ink);color:var(--paper);}
+  .tab:active{transform:scale(0.96);}
+  .tab .check-badge{
+    position:absolute;top:-6px;right:-6px;
+    background:var(--hd);color:#fff;
+    width:18px;height:18px;border-radius:50%;
+    font-size:11px;display:flex;align-items:center;justify-content:center;
+    border:2px solid var(--paper);
+  }
+
+  /* ---- Passage card frame ---- */
+  .passage-head{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:16px;
+  }
+  .avatar{
+    width:56px;height:56px;
+    border-radius:16px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px;
+    border:2px solid var(--ink);
+    flex:0 0 auto;
+    transform:rotate(-3deg);
+  }
+  .passage-head h2{
+    font-family:'Baloo 2',sans-serif;
+    font-size:19px;
+    margin:0 0 2px;
+  }
+  .passage-head span{
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+
+  /* ---- Sentence pool ---- */
+  .pool{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:22px;
+    min-height:40px;
+  }
+  .bubble{
+    font-family:'Be Vietnam Pro',sans-serif;
+    font-size:14.5px;
+    line-height:1.4;
+    background:#fff;
+    border:2px solid var(--ink);
+    border-radius:16px 16px 16px 4px;
+    padding:10px 14px;
+    cursor:pointer;
+    box-shadow:var(--card-shadow);
+    max-width:320px;
+    transition:transform .12s ease, box-shadow .12s ease;
+    user-select:none;
+  }
+  .bubble:hover{transform:translateY(-2px);}
+  .bubble.selected{
+    background:#FFF6DC;
+    border-color:var(--amber);
+    box-shadow:2px 3px 0 rgba(199,154,46,0.35);
+  }
+  .pool-empty-hint{
+    font-size:13px;
+    color:var(--ink-soft);
+    font-style:italic;
+    padding:6px 2px;
+  }
+
+  /* ---- Zones ---- */
+  .zones{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-bottom:18px;
+  }
+  .zone{
+    border-radius:14px;
+    padding:12px 14px 14px;
+    border:2px dashed transparent;
+    min-height:64px;
+  }
+  .zone.gt{background:var(--gt-bg);}
+  .zone.dd{background:var(--dd-bg);}
+  .zone.hd{background:var(--hd-bg);}
+  .zone.droppable{border-color:var(--amber);}
+  .zone-title{
+    font-family:'Baloo 2',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    margin-bottom:8px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .zone.gt .zone-title{color:var(--gt);}
+  .zone.dd .zone-title{color:var(--dd);}
+  .zone.hd .zone-title{color:var(--hd);}
+  .zone-items{display:flex;flex-wrap:wrap;gap:8px;}
+  .zone-empty{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+
+  .zone .bubble{
+    font-size:13.5px;
+    padding:8px 12px;
+    border-radius:12px 12px 12px 4px;
+  }
+  .zone .bubble.correct{border-color:var(--hd); background:#F1FAF3;}
+  .zone .bubble.wrong{border-color:#C1443A; background:#FDECEA;}
+
+  /* ---- Controls ---- */
+  .controls{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:6px;
+  }
+  button.action{
+    font-family:'Baloo 2',sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    border-radius:10px;
+    padding:11px 18px;
+    cursor:pointer;
+    border:2px solid var(--ink);
+  }
+  button.check{background:var(--ink);color:var(--paper);}
+  button.check:disabled{opacity:.35;cursor:not-allowed;}
+  button.reset{background:var(--paper);color:var(--ink);}
+  .feedback{
+    font-size:14px;
+    font-weight:600;
+  }
+  .feedback.good{color:var(--hd);}
+  .feedback.mid{color:var(--amber);}
+
+  @media (max-width:480px){
+    .legend{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow-row"><span class="dot"></span><span style="font-size:13px;color:var(--ink-soft);">Luyện tập câu kể</span></div>
+    <h1>Sắp xếp câu kể vào đúng nhóm</h1>
+    <p class="lede">Mỗi đoạn văn dưới đây do một đồ vật hoặc con vật tự kể về mình. Em hãy đọc kỹ từng câu, chạm để chọn câu, rồi chạm vào đúng ô để xếp câu vào nhóm phù hợp.</p>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item gt"><b>Câu giới thiệu</b>Cho biết đó là ai, là gì, của ai.</div>
+    <div class="legend-item dd"><b>Câu nêu đặc điểm</b>Tả hình dáng, màu sắc, tính chất.</div>
+    <div class="legend-item hd"><b>Câu nêu hoạt động</b>Kể việc làm, hành động thường ngày.</div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div id="passage-area"></div>
+
+</div>
+
+<script>
+const CAT_LABEL = {gt:'Câu giới thiệu', dd:'Câu nêu đặc điểm', hd:'Câu nêu hoạt động'};
+
+const PASSAGES = [
+  {
+    id:'capsach', title:'Chiếc cặp sách', emoji:'🎒', color:'#3E6FBF',
+    intro:'Chiếc cặp sách của bạn Nam đang tự giới thiệu về mình.',
+    sentences:[
+      {id:3, text:'Tớ thường được đặt ngay ngắn bên cạnh bàn học.', cat:'hd'},
+      {id:1, text:'Tớ là chiếc cặp sách màu xanh của bạn Nam.', cat:'gt'},
+      {id:5, text:'Mỗi ngày, tớ đựng sách vở và đồ dùng học tập cho bạn Nam.', cat:'hd'},
+      {id:2, text:'Tớ có hai ngăn lớn và một chiếc túi nhỏ ở phía trước.', cat:'dd'},
+      {id:4, text:'Đây là hộp bút, người bạn nhỏ luôn đi cùng tớ.', cat:'gt'}
+    ]
+  },
+  {
+    id:'meo', title:'Chú mèo', emoji:'🐱', color:'#BE5B36',
+    intro:'Chú mèo Miu đang kể chuyện về chính mình.',
+    sentences:[
+      {id:2, text:'Bộ lông của tớ mềm mại và trắng muốt như bông.', cat:'dd'},
+      {id:5, text:'Mỗi khi thấy quả bóng len, tớ liền chạy đến chơi.', cat:'hd'},
+      {id:1, text:'Tớ là Miu, chú mèo nhỏ của gia đình.', cat:'gt'},
+      {id:4, text:'Tớ thường nằm sưởi nắng bên hiên nhà.', cat:'hd'},
+      {id:3, text:'Tớ có đôi mắt tròn long lanh và bốn chiếc chân nhỏ.', cat:'dd'}
+    ]
+  },
+  {
+    id:'phuong', title:'Cây phượng', emoji:'🌳', color:'#417A55',
+    intro:'Cây phượng già ở sân trường đang tâm sự cùng các bạn.',
+    sentences:[
+      {id:4, text:'Cây phượng dang những cành lá rộng để che mát cho chúng tớ.', cat:'hd'},
+      {id:1, text:'Đây là cây phượng già ở sân trường tớ.', cat:'gt'},
+      {id:3, text:'Mỗi khi hè về, những chùm hoa phượng đỏ rực nở đầy trên cành.', cat:'dd'},
+      {id:5, text:'Chúng tớ thường ngồi dưới gốc cây đọc sách và trò chuyện.', cat:'hd'},
+      {id:2, text:'Cây có thân to, tán lá rộng và xanh um.', cat:'dd'}
+    ]
+  },
+  {
+    id:'xedap', title:'Chiếc xe đạp', emoji:'🚲', color:'#C79A2E',
+    intro:'Chiếc xe đạp nhỏ của bạn An đang giới thiệu về mình.',
+    sentences:[
+      {id:3, text:'Chiếc giỏ phía trước của tớ khá rộng và chắc chắn.', cat:'dd'},
+      {id:1, text:'Tớ là chiếc xe đạp nhỏ của bạn An.', cat:'gt'},
+      {id:5, text:'Chiều về, tớ lại cùng bạn thong thả đi qua con đường đầy cây xanh.', cat:'hd'},
+      {id:2, text:'Tớ có màu vàng tươi và hai chiếc bánh tròn xinh xắn.', cat:'dd'},
+      {id:4, text:'Mỗi sáng, tớ chở bạn An đến trường.', cat:'hd'}
+    ]
+  }
+];
+
+// state[passageId] = { assign: {sentenceId:cat|null}, checked:bool, selected:sentenceId|null }
+const state = {};
+PASSAGES.forEach(p=>{
+  state[p.id] = {assign:{}, checked:false, selected:null};
+  p.sentences.forEach(s=>state[p.id].assign[s.id]=null);
+});
+
+let activeId = PASSAGES[0].id;
+
+function isPassageComplete(p){
+  const st = state[p.id];
+  if(!st.checked) return false;
+  return p.sentences.every(s=>st.assign[s.id]===s.cat);
+}
+
+function renderTabs(){
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML='';
+  PASSAGES.forEach(p=>{
+    const btn=document.createElement('div');
+    btn.className='tab'+(p.id===activeId?' active':'');
+    btn.innerHTML = `<span class="emoji">${p.emoji}</span><span>${p.title}</span>`;
+    if(isPassageComplete(p)){
+      const badge=document.createElement('div');
+      badge.className='check-badge';
+      badge.textContent='✓';
+      btn.appendChild(badge);
+    }
+    btn.onclick=()=>{activeId=p.id; renderAll();};
+    tabs.appendChild(btn);
+  });
+}
+
+function makeBubble(s, p, location){
+  const st = state[p.id];
+  const div = document.createElement('div');
+  div.className='bubble';
+  div.textContent = s.text;
+
+  if(location==='pool' && st.selected===s.id){
+    div.classList.add('selected');
+  }
+  if(location!=='pool' && st.checked){
+    div.classList.add(st.assign[s.id]===s.cat ? 'correct' : 'wrong');
+  }
+
+  div.onclick=()=>{
+    if(location==='pool'){
+      st.selected = (st.selected===s.id) ? null : s.id;
+      st.checked=false;
+      renderAll();
+    } else {
+      // tap inside a zone sends it back to the pool
+      st.assign[s.id]=null;
+      st.checked=false;
+      renderAll();
+    }
+  };
+  return div;
+}
+
+function renderPassage(){
+  const p = PASSAGES.find(x=>x.id===activeId);
+  const st = state[p.id];
+  const area = document.getElementById('passage-area');
+  area.innerHTML='';
+
+  const head = document.createElement('div');
+  head.className='passage-head';
+  head.innerHTML = `
+    <div class="avatar" style="background:${p.color}22;">${p.emoji}</div>
+    <div><h2>${p.title}</h2><span>${p.intro}</span></div>
+  `;
+  area.appendChild(head);
+
+  // pool
+  const pool = document.createElement('div');
+  pool.className='pool';
+  const poolSentences = p.sentences.filter(s=>!st.assign[s.id]);
+  if(poolSentences.length===0){
+    const hint=document.createElement('div');
+    hint.className='pool-empty-hint';
+    hint.textContent='Tất cả các câu đã được xếp. Chạm "Kiểm tra" để xem kết quả nhé!';
+    pool.appendChild(hint);
+  } else {
+    poolSentences.forEach(s=>pool.appendChild(makeBubble(s,p,'pool')));
+  }
+  area.appendChild(pool);
+
+  // zones
+  const zones = document.createElement('div');
+  zones.className='zones';
+  ['gt','dd','hd'].forEach(cat=>{
+    const zone=document.createElement('div');
+    zone.className='zone '+cat + (st.selected!==null ? ' droppable':'');
+    const title=document.createElement('div');
+    title.className='zone-title';
+    title.textContent = CAT_LABEL[cat];
+    zone.appendChild(title);
+
+    const items=document.createElement('div');
+    items.className='zone-items';
+    const inZone = p.sentences.filter(s=>st.assign[s.id]===cat);
+    if(inZone.length===0){
+      const e=document.createElement('div');
+      e.className='zone-empty';
+      e.textContent = st.selected!==null ? 'Chạm vào đây để xếp câu đã chọn' : 'Chưa có câu nào';
+      items.appendChild(e);
+    } else {
+      inZone.forEach(s=>items.appendChild(makeBubble(s,p,cat)));
+    }
+    zone.appendChild(items);
+
+    zone.addEventListener('click',(e)=>{
+      // only trigger placement when clicking empty zone area, not a bubble (bubbles stop propagation via their own handler already returning)
+      if(e.target.closest('.bubble')) return;
+      if(st.selected!==null){
+        st.assign[st.selected]=cat;
+        st.selected=null;
+        st.checked=false;
+        renderAll();
+      }
+    });
+
+    zones.appendChild(zone);
+  });
+  area.appendChild(zones);
+
+  // controls
+  const controls=document.createElement('div');
+  controls.className='controls';
+
+  const allAssigned = p.sentences.every(s=>st.assign[s.id]!==null);
+  const checkBtn=document.createElement('button');
+  checkBtn.className='action check';
+  checkBtn.textContent='Kiểm tra';
+  checkBtn.disabled = !allAssigned;
+  checkBtn.onclick=()=>{st.checked=true; renderAll();};
+  controls.appendChild(checkBtn);
+
+  const resetBtn=document.createElement('button');
+  resetBtn.className='action reset';
+  resetBtn.textContent='Làm lại';
+  resetBtn.onclick=()=>{
+    p.sentences.forEach(s=>st.assign[s.id]=null);
+    st.checked=false; st.selected=null;
+    renderAll();
+  };
+  controls.appendChild(resetBtn);
+
+  if(st.checked){
+    const correctCount = p.sentences.filter(s=>st.assign[s.id]===s.cat).length;
+    const fb=document.createElement('div');
+    fb.className='feedback '+(correctCount===p.sentences.length?'good':'mid');
+    fb.textContent = correctCount===p.sentences.length
+      ? `Xếp đúng cả ${p.sentences.length} câu! Giỏi lắm.`
+      : `Em xếp đúng ${correctCount}/${p.sentences.length} câu. Chạm vào câu sai trong ô để đưa lại và thử xếp lại nhé.`;
+    controls.appendChild(fb);
+  }
+
+  area.appendChild(controls);
+}
+
+function renderAll(){
+  renderTabs();
+  renderPassage();
+}
+
+renderAll();
+</script>
+</body>
+</html>
